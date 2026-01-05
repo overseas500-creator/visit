@@ -52,11 +52,10 @@ export default function VisitorForm() {
         if ('OTPCredential' in window) {
             const ac = new AbortController();
 
-            // @ts-ignore
             navigator.credentials.get({
                 otp: { transport: ['sms'] },
                 signal: ac.signal
-            }).then((otp: any) => {
+            } as any).then((otp: any) => {
                 setOtpCode(otp.code);
                 // Auto verify when code is received
                 verifyOTP(formData.mobileNumber, otp.code).then(res => {
