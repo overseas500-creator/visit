@@ -44,6 +44,9 @@ export async function sendOTP(mobileNumber: string) {
 
         console.log(`[SMS] Sending to ${number} via ${senderName}...`);
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds timeout
+
         const response = await fetch('https://app.mobile.net.sa/api/v1/send', {
             method: 'POST',
             headers: {
@@ -55,10 +58,10 @@ export async function sendOTP(mobileNumber: string) {
                 number: number,
                 senderName: senderName.trim(),
                 sendAtOption: "Now",
-                messageBody: message,
-                allow_duplicate: true
-            })
-        });
+                messageBody: message
+            }),
+            signal: controller.signal
+        }).finally(() => clearTimeout(timeoutId));
 
         if (!response.ok) {
             const errorText = await response.text();

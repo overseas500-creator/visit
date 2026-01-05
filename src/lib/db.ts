@@ -4,6 +4,7 @@ import path from 'path';
 const dbPath = path.join(process.cwd(), 'visitors.db');
 
 export const db = new Database(dbPath);
+db.pragma('journal_mode = WAL');
 
 // Initialize the database table
 db.exec(`
