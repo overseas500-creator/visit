@@ -3,7 +3,8 @@
   flex-direction: column;
   min-height: 100vh;
   background: linear-gradient(to bottom right, var(--background), #fff);
-  padding-top: 80px; /* Header height offset */
+  padding-top: 80px;
+  /* Header height offset */
 }
 
 .header {
@@ -24,63 +25,85 @@
 }
 
 .headerContent {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
+  gap: 1rem;
 }
 
 /* School Info (Right in RTL) */
 .schoolInfo {
-  grid-column: 1;
   text-align: right;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: flex-start;
+  /* In RTL flex-start is Right? No, in Flexbox text direction matters but align-items depends on cross-axis. Wait. CSS Text-Align handles text. Align-items handles children divs? Only P tags here. */
   gap: 2px;
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--foreground);
+  flex: 1;
 }
 
+/* Ensure text is aligned correctly */
 .schoolInfo p {
   margin: 0;
   line-height: 1.4;
   opacity: 0.9;
+  width: 100%;
+  /* Ensure text aligns to the block */
+}
+
+/* Placeholder to balance flex if info missing */
+.placeholder {
+  flex: 1;
 }
 
 /* Logo (Center) */
 .logoContainer {
-  grid-column: 2;
   display: flex;
   justify-content: center;
   align-items: center;
+  flex: 0 0 auto;
 }
 
 .headerLogo {
   object-fit: contain;
   width: auto;
-  height: 60px;
-  /* mix-blend-mode: multiply; */ /* Optional depending on logo bg */
+  height: 80px;
+  /* Slightly larger */
 }
 
-/* Title & Acts (Left in RTL) */
-.headerContent > div:nth-child(1) {
-  grid-column: 3;
+/* Title & Actions (Left in RTL) */
+.headerTitleSection {
   text-align: left;
+  /* Visual Left */
   display: flex;
   flex-direction: column;
-  align-items: flex-end; /* Align to the left (end of container in RTL context? No, strictly left visually) */
-  /* In RTL: Flexbox 'flex-end' implies Left side */
+  align-items: flex-end;
+  /* In RTL, flex-end of a row is Left. But this is a column. Cross axis (horizontal) flex-end => Left in RTL. */
+  flex: 1;
 }
 
-.headerContent h1 {
+/* Wait. In RTL Document:
+   Main axis (row) starts Right, ends Left.
+   Cross axis (column) starts Top, ends Bottom.
+   'align-items' on column container: 
+     'flex-start' = Right? (Cross axis is vertical? No, main axis is Vertical in column).
+     Cross axis is Horizontal.
+     'flex-start' in RTL horizontal cross axis should be Right.
+     'flex-end' should be Left.
+*/
+
+.headerTitleSection h1 {
   font-size: 1.5rem;
   font-weight: 800;
   color: var(--primary);
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 0.5rem 0;
   letter-spacing: -0.025em;
 }
 
@@ -89,18 +112,21 @@
   align-items: center;
   justify-content: center;
   font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--primary);
-  background-color: rgba(21, 128, 61, 0.1);
-  padding: 0.4rem 1rem;
+  font-weight: 600;
+  color: #fff;
+  background-color: var(--primary);
+  padding: 0.5rem 1.5rem;
   border-radius: 9999px;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
 }
 
 .reportLink:hover {
-  background-color: var(--primary);
-  color: white;
+  background-color: var(--primary-dark, #166534);
+  /* Fallback to darker green */
   transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
 }
 
 .main {
@@ -127,7 +153,7 @@
   .page {
     padding-top: 110px;
   }
-  
+
   .header {
     height: auto;
     padding: 1rem;
@@ -150,7 +176,7 @@
     margin-bottom: 0.5rem;
   }
 
-  .headerContent > div:nth-child(1) {
+  .headerContent>div:nth-child(1) {
     order: 3;
     align-items: center;
     text-align: center;
