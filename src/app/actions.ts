@@ -28,6 +28,11 @@ export async function sendOTP(mobileNumber: string) {
 
         const message = `رمز التحقق: ${code}`;
 
+        // Developer Log to allow testing without SMS
+        console.log(`\n================================`);
+        console.log(`[DEV MODE] OTP Code for ${mobileNumber}: ${code}`);
+        console.log(`================================\n`);
+
         // Format number: remove leading 0, prefix with 966
         // 0501234567 -> 966501234567
         let number = mobileNumber.trim();
@@ -37,18 +42,18 @@ export async function sendOTP(mobileNumber: string) {
             number = '966' + number;
         }
 
-        console.log(`[SMS] Sending to ${number}...`);
+        console.log(`[SMS] Sending to ${number} via ${senderName}...`);
 
         const response = await fetch('https://app.mobile.net.sa/api/v1/send', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${apiKey}`,
+                'Authorization': `Bearer ${apiKey.trim()}`,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
             body: JSON.stringify({
                 number: number,
-                senderName: senderName, // Using default/example sender name to ensure delivery
+                senderName: senderName.trim(),
                 sendAtOption: "Now",
                 messageBody: message,
                 allow_duplicate: true
@@ -57,13 +62,13 @@ export async function sendOTP(mobileNumber: string) {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error('SMS API Error:', errorText);
+            console.error('SMS API Error:', response.status, errorText);
             // Try to parse JSON error if possible
             try {
                 const jsonError = JSON.parse(errorText);
-                return { success: false, error: `فشل المزود: ${jsonError.message || JSON.stringify(jsonError)}` };
+                return { success: false, error: `خطأ من مزود الخدمة (${response.status}): ${jsonError.message || JSON.stringify(jsonError)}` };
             } catch {
-                return { success: false, error: `- فشل المزود: ${errorText.substring(0, 100)}` };
+                return { success: false, error: `خطأ من مزود الخدمة (${response.status}): ${errorText.substring(0, 100)}` };
             }
         }
 
