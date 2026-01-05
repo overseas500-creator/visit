@@ -11,23 +11,25 @@ export default async function Home() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div className={styles.headerContent}>
-          <div>
-            <h1>نظام تسجيل الزوار</h1>
-            <a href="/reports" className={styles.reportLink}>عرض التقارير</a>
-          </div>
-
-          <div className={styles.logoContainer}>
-            <Image src="/logo_green.png" alt="Logo" width={120} height={120} className={styles.headerLogo} priority />
-          </div>
-
-          {schoolInfo && (
+          {schoolInfo ? (
             <div className={styles.schoolInfo}>
               <p>{schoolInfo.school_country}</p>
               <p>{schoolInfo.school_ministry}</p>
               <p>{schoolInfo.school_directorate}</p>
               <p>{schoolInfo.school_name}</p>
             </div>
-          )}
+          ) : <div className={styles.placeholder} />}
+
+          <div className={styles.logoContainer}>
+            <Image src="/logo_green.png" alt="Logo" width={100} height={100} className={styles.headerLogo} priority />
+          </div>
+
+          <div className={styles.headerTitleSection}>
+            <h1>نظام تسجيل الزوار</h1>
+            <a href="/reports" className={styles.reportLink}>
+              عرض التقارير
+            </a>
+          </div>
         </div>
       </header>
       <main className={styles.main}>
