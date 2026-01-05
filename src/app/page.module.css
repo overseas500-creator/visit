@@ -158,16 +158,25 @@
 }
 
 .adminLoginLink {
-  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 500;
   color: var(--primary);
-  opacity: 0.8;
-  text-decoration: underline;
-  cursor: pointer;
-  transition: opacity 0.2s;
+  background-color: transparent;
+  border: 1px solid var(--primary);
+  padding: 0.4rem 1.2rem;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  opacity: 1;
 }
 
 .adminLoginLink:hover {
-  opacity: 1;
+  background-color: var(--primary);
+  color: white;
+  transform: translateY(-1px);
 }
 
 /* Responsive Adjustments */
