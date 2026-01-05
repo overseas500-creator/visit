@@ -13,7 +13,7 @@ export default async function Home() {
         <div className={styles.headerContent}>
           <div>
             <h1>نظام تسجيل الزوار</h1>
-            <a href="/reports" style={{ fontSize: "0.875rem", color: "var(--text-muted)", textDecoration: "underline" }}>عرض التقارير</a>
+            <a href="/reports" className={styles.reportLink}>عرض التقارير</a>
           </div>
 
           <div className={styles.logoContainer}>

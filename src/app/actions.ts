@@ -63,7 +63,7 @@ export async function sendOTP(mobileNumber: string) {
                 const jsonError = JSON.parse(errorText);
                 return { success: false, error: `فشل المزود: ${jsonError.message || JSON.stringify(jsonError)}` };
             } catch {
-                return { success: false, error: `فشل المزود: ${errorText.substring(0, 100)}` };
+                return { success: false, error: `- فشل المزود: ${errorText.substring(0, 100)}` };
             }
         }
 
