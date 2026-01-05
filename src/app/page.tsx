@@ -26,9 +26,6 @@ export default async function Home() {
 
           <div className={styles.headerTitleSection}>
             <h1>نظام تسجيل الزوار</h1>
-            <a href="/reports" className={styles.reportLink}>
-              عرض التقارير
-            </a>
           </div>
         </div>
       </header>
@@ -37,7 +34,10 @@ export default async function Home() {
       </main>
 
       <footer className={styles.footer}>
-        <p>جميع الحقوق الفكرية والبرمجية محفوظة لـ ماجد عثمان الزهراني</p>
+        <div className={styles.footerContent}>
+          <p>جميع الحقوق الفكرية والبرمجية محفوظة لـ ماجد عثمان الزهراني</p>
+          <a href="/reports" className={styles.adminLoginLink}>دخول المسؤول</a>
+        </div>
       </footer>
     </div>
   );
