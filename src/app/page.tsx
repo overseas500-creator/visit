@@ -3,6 +3,8 @@ import styles from "./page.module.css";
 import { getSchoolInfo } from "./actions";
 import Image from "next/image";
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   const schoolInfoRes = await getSchoolInfo();
   const schoolInfo = schoolInfoRes.success ? schoolInfoRes.data : null;

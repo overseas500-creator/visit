@@ -8,6 +8,8 @@ import Link from 'next/link';
 import SettingsModal from '@/components/SettingsModal';
 import Image from 'next/image';
 
+export const dynamic = 'force-dynamic';
+
 type Tab = 'visitors' | 'permit' | 'student_report' | 'import';
 
 export default function AdminDashboard() {
