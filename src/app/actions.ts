@@ -10,11 +10,13 @@ export async function sendOTP(mobileNumber: string) {
     // 2. Save to DB with expiration (5 mins)
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
-    const stmt = db.prepare(`
-    INSERT OR REPLACE INTO otp_codes (mobile_number, code, expires_at)
-    VALUES (?, ?, ?)
-  `);
-    stmt.run(mobileNumber, code, expiresAt);
+    if (process.env.NEXT_PHASE !== 'phase-production-build') {
+        const stmt = db.prepare(`
+        INSERT OR REPLACE INTO otp_codes (mobile_number, code, expires_at)
+        VALUES (?, ?, ?)
+      `);
+        stmt.run(mobileNumber, code, expiresAt);
+    }
 
     // 3. Send SMS
     try {

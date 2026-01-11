@@ -46,10 +46,10 @@ jobs:
         # The node_modules inside standalone should work for Linux.
 
     - name: Zip Release
-      uses: archive-action/archive-action@v1
-      with:
-        target: deploy_package
-        output: visit-release.zip
+      run: |
+        cd deploy_package
+        zip -r ../visit-release.zip .
+        cd ..
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
