@@ -3,13 +3,19 @@ import path from 'path';
 
 const dbPath = path.join(process.cwd(), 'visitors.db');
 
-// Internal singleton instance
-let _db: Database.Database | undefined;
+// Use a global variable to store the database instance in development
+// This prevents multiple connections during hot reloading
+const globalForDb = global as unknown as { db?: Database.Database };
 
-const initDb = (database: Database.Database) => {
+export const db = globalForDb.db || new Database(dbPath);
+
+if (process.env.NODE_ENV !== 'production') globalForDb.db = db;
+
+// Initialize the database tables
+const initDb = () => {
   try {
     console.log("Initializing Database Tables...");
-    database.exec(`
+    db.exec(`
           CREATE TABLE IF NOT EXISTS visitors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -23,7 +29,7 @@ const initDb = (database: Database.Database) => {
           )
         `);
 
-    database.exec(`
+    db.exec(`
           CREATE TABLE IF NOT EXISTS otp_codes (
             mobile_number TEXT PRIMARY KEY,
             code TEXT NOT NULL,
@@ -31,14 +37,14 @@ const initDb = (database: Database.Database) => {
           )
         `);
 
-    database.exec(`
+    db.exec(`
           CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
             value TEXT NOT NULL
           )
         `);
 
-    database.exec(`
+    db.exec(`
           CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -49,7 +55,7 @@ const initDb = (database: Database.Database) => {
           )
         `);
 
-    database.exec(`
+    db.exec(`
           CREATE TABLE IF NOT EXISTS student_exits (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             student_id INTEGER NOT NULL,
@@ -71,8 +77,8 @@ const initDb = (database: Database.Database) => {
       { key: 'school_name', value: 'مدرسة الأجاويد الأولى المتوسطة' },
     ];
 
-    const checkStmt = database.prepare("SELECT value FROM settings WHERE key = ?");
-    const insertStmt = database.prepare("INSERT INTO settings (key, value) VALUES (?, ?)");
+    const checkStmt = db.prepare("SELECT value FROM settings WHERE key = ?");
+    const insertStmt = db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)");
 
     defaults.forEach(setting => {
       if (!checkStmt.get(setting.key)) {
@@ -84,26 +90,5 @@ const initDb = (database: Database.Database) => {
   }
 };
 
-const getDb = () => {
-  if (!_db) {
-    // Prevent initialization during build if possible, but force-dynamic pages might still trigger it.
-    // However, with Proxy, it only triggers if a method is CALLED.
-    // During build, Next.js imports files but usually doesn't call runtime actions.
-    _db = new Database(dbPath);
-    initDb(_db);
-  }
-  return _db;
-};
-
-// Export a Proxy that behaves like the 'db' object but initializes on first access
-export const db = new Proxy({} as Database.Database, {
-  get(target, prop) {
-    const instance = getDb();
-    const value = (instance as any)[prop];
-    if (typeof value === 'function') {
-      // Bind function to instance so 'this' context is correct
-      return value.bind(instance);
-    }
-    return value;
-  }
-});
+// Run initialization
+initDb();
