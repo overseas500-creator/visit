@@ -1,0 +1,58 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Build
+      run: npm run build
+      env:
+        # Relax constraints for build
+        NEXT_TELEMETRY_DISABLED: 1
+        NODE_ENV: production
+
+    - name: Prepare Standalone Package
+      run: |
+        # Prepare the standalone folder for deployment
+        mkdir deploy_package
+        cp -r .next/standalone/* deploy_package/
+        
+        # Copy static assets which are not included by default in standalone root
+        mkdir -p deploy_package/.next/static
+        cp -r .next/static/* deploy_package/.next/static/
+        
+        mkdir -p deploy_package/public
+        cp -r public/* deploy_package/public/
+        
+        # We need to copy the better-sqlite3 native binary if it wasn't bundled correctly, 
+        # but usually standalone includes node_modules. 
+        # The node_modules inside standalone should work for Linux.
+
+    - name: Zip Release
+      uses: archive-action/archive-action@v1
+      with:
+        target: deploy_package
+        output: visit-release.zip
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: visit-release
+        path: visit-release.zip
