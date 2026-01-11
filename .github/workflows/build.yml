@@ -24,26 +24,27 @@ jobs:
     - name: Build
       run: npm run build
       env:
-        # Relax constraints for build
         NEXT_TELEMETRY_DISABLED: 1
         NODE_ENV: production
 
     - name: Prepare Standalone Package
       run: |
-        # Prepare the standalone folder for deployment
-        mkdir deploy_package
+        mkdir -p deploy_package/.next/static
+        mkdir -p deploy_package/public
+        
+        # Copy standalone build
         cp -r .next/standalone/* deploy_package/
         
-        # Copy static assets which are not included by default in standalone root
-        mkdir -p deploy_package/.next/static
+        # Copy static assets (required for Next.js to work correctly)
         cp -r .next/static/* deploy_package/.next/static/
-        
-        mkdir -p deploy_package/public
         cp -r public/* deploy_package/public/
         
-        # We need to copy the better-sqlite3 native binary if it wasn't bundled correctly, 
-        # but usually standalone includes node_modules. 
-        # The node_modules inside standalone should work for Linux.
+        # Copy server.js (we need to ensure it uses the standalone build)
+        # Usually standalone creates server.js, but we might want our custom one if needed.
+        # Next.js standalone server.js is located at .next/standalone/server.js
+
+    - name: Install Zip
+      run: sudo apt-get install -y zip
 
     - name: Zip Release
       run: |
