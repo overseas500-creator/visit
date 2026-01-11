@@ -29,11 +29,11 @@ jobs:
 
     - name: Prepare Standalone Package
       run: |
-        mkdir -p deploy_package/.next/static
-        mkdir -p deploy_package/public
-        
-        # Copy standalone build
-        cp -r .next/standalone/* deploy_package/
+        mkdir deploy_package
+        cp -r .next/standalone/. deploy_package/
+        cp -r public deploy_package/public
+        mkdir -p deploy_package/.next
+        cp -r .next/static deploy_package/.next/static
         
         # Copy static assets (required for Next.js to work correctly)
         cp -r .next/static/* deploy_package/.next/static/
