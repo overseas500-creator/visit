@@ -92,3 +92,4 @@ const initDb = () => {
 
 // Run initialization
 initDb();
+
