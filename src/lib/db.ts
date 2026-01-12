@@ -1,21 +1,41 @@
-import Database from 'better-sqlite3';
+import sqlite3 from 'sqlite3';
+import { open, Database } from 'sqlite';
 import path from 'path';
 
 const dbPath = path.join(process.cwd(), 'visitors.db');
 
-// Use a global variable to store the database instance in development
-// This prevents multiple connections during hot reloading
-const globalForDb = global as unknown as { db?: Database.Database };
+// Global cache for development
+const globalForDb = global as unknown as { dbPromise?: Promise<Database> };
 
-export const db = globalForDb.db || new Database(dbPath);
+// Helper to initialize the DB connection
+const initDbConnection = async (): Promise<Database> => {
+  if (globalForDb.dbPromise) return globalForDb.dbPromise;
 
-if (process.env.NODE_ENV !== 'production') globalForDb.db = db;
+  const promise = open({
+    filename: dbPath,
+    driver: sqlite3.Database
+  }).then(async (db) => {
+    // Enable foreign keys
+    await db.run('PRAGMA foreign_keys = ON');
+    return db;
+  });
 
-// Initialize the database tables
-const initDb = () => {
+  if (process.env.NODE_ENV !== 'production') {
+    globalForDb.dbPromise = promise;
+  }
+  return promise;
+};
+
+// Export a function to get the DB instance
+export const getDb = initDbConnection;
+
+// Initialize tables
+const initTables = async () => {
   try {
+    const db = await getDb();
     console.log("Initializing Database Tables...");
-    db.exec(`
+
+    await db.exec(`
           CREATE TABLE IF NOT EXISTS visitors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -29,7 +49,7 @@ const initDb = () => {
           )
         `);
 
-    db.exec(`
+    await db.exec(`
           CREATE TABLE IF NOT EXISTS otp_codes (
             mobile_number TEXT PRIMARY KEY,
             code TEXT NOT NULL,
@@ -37,14 +57,14 @@ const initDb = () => {
           )
         `);
 
-    db.exec(`
+    await db.exec(`
           CREATE TABLE IF NOT EXISTS settings (
             key TEXT PRIMARY KEY,
             value TEXT NOT NULL
           )
         `);
 
-    db.exec(`
+    await db.exec(`
           CREATE TABLE IF NOT EXISTS students (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -55,7 +75,7 @@ const initDb = () => {
           )
         `);
 
-    db.exec(`
+    await db.exec(`
           CREATE TABLE IF NOT EXISTS student_exits (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             student_id INTEGER NOT NULL,
@@ -77,19 +97,18 @@ const initDb = () => {
       { key: 'school_name', value: 'مدرسة الأجاويد الأولى المتوسطة' },
     ];
 
-    const checkStmt = db.prepare("SELECT value FROM settings WHERE key = ?");
-    const insertStmt = db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)");
-
-    defaults.forEach(setting => {
-      if (!checkStmt.get(setting.key)) {
-        insertStmt.run(setting.key, setting.value);
+    for (const setting of defaults) {
+      const existing = await db.get("SELECT value FROM settings WHERE key = ?", setting.key);
+      if (!existing) {
+        await db.run("INSERT INTO settings (key, value) VALUES (?, ?)", setting.key, setting.value);
       }
-    });
+    }
   } catch (error) {
     console.error("Database initialization error:", error);
   }
 };
 
-// Run initialization
-initDb();
+// Start initialization (fire and forget, but ideally should be awaited in entry point)
+initTables();
+
 
