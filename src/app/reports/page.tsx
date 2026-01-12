@@ -331,6 +331,7 @@ export default function AdminDashboard() {
                                             <th>رقم الهوية</th>
                                             <th>الجوال</th>
                                             <th>الغرض</th>
+                                            <th>الإقرار</th>
                                             <th>التوقيع</th>
                                         </tr>
                                     </thead>
@@ -342,6 +343,7 @@ export default function AdminDashboard() {
                                                 <td>{visitor.id_number}</td>
                                                 <td>{visitor.mobile_number}</td>
                                                 <td>{visitor.purpose}</td>
+                                                <td><span style={{ color: 'green', fontWeight: 'bold' }}>تم</span></td>
                                                 <td>{visitor.signature && <img src={visitor.signature} alt="توقيع" className={styles.signatureImg} />}</td>
                                             </tr>
                                         ))}

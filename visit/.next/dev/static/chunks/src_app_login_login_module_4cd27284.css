@@ -1,0 +1,54 @@
+/* [project]/src/app/login/login.module.css [app-client] (css) */
+.login-module__WEZH7G__container {
+  background: var(--background);
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  display: flex;
+}
+
+.login-module__WEZH7G__card {
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  background: #fff;
+  width: 100%;
+  max-width: 400px;
+  padding: 2rem;
+}
+
+.login-module__WEZH7G__title {
+  color: var(--primary);
+  margin-bottom: 2rem;
+  font-size: 1.5rem;
+}
+
+.login-module__WEZH7G__form {
+  flex-direction: column;
+  gap: 1rem;
+  display: flex;
+}
+
+.login-module__WEZH7G__input {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .75rem;
+  font-size: 1rem;
+}
+
+.login-module__WEZH7G__button {
+  background: var(--primary);
+  color: #fff;
+  border-radius: var(--radius);
+  cursor: pointer;
+  border: none;
+  padding: .75rem;
+  font-size: 1rem;
+}
+
+.login-module__WEZH7G__error {
+  color: red;
+  font-size: .875rem;
+}
+
+/*# sourceMappingURL=src_app_login_login_module_4cd27284.css.map*/

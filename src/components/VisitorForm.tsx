@@ -12,6 +12,7 @@ export default function VisitorForm() {
         idNumber: '',
         mobileNumber: '',
         purpose: '',
+        acknowledgment: false,
         signature: '',
     });
     const [loading, setLoading] = useState(false);
@@ -29,6 +30,7 @@ export default function VisitorForm() {
         { key: 'idNumber', label: 'رقم الهوية / الإقامة', type: 'text', placeholder: 'أدخل رقم الهوية' },
         { key: 'mobileNumber', label: 'رقم الجوال', type: 'tel', placeholder: '05xxxxxxxx' },
         { key: 'purpose', label: 'سبب الزيارة', type: 'text', placeholder: 'اجتماع، توصيل، إلخ' },
+        { key: 'acknowledgment', label: 'الإقرار', type: 'checkbox' },
         { key: 'signature', label: 'التوقيع', type: 'signature' },
     ];
 
@@ -79,7 +81,8 @@ export default function VisitorForm() {
     }, [showOtpInput, formData.mobileNumber]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [currentStep.key]: e.target.value });
+        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+        setFormData({ ...formData, [currentStep.key]: value });
     };
 
     const handleVerify = async () => {
@@ -141,6 +144,15 @@ export default function VisitorForm() {
             }
         }
 
+        if (currentStep.key === 'acknowledgment') {
+            if (!formData.acknowledgment) {
+                alert('الرجاء الموافقة على الإقرار للمتابعة');
+                return;
+            }
+            setStep(prev => prev + 1);
+            return;
+        }
+
         if (currentStep.type === 'signature') {
             if (sigCanvas.current.isEmpty()) {
                 alert('الرجاء التوقيع قبل المتابعة');
@@ -194,7 +206,7 @@ export default function VisitorForm() {
                     onClick={() => {
                         setSubmitted(false);
                         setStep(0);
-                        setFormData({ name: '', idNumber: '', mobileNumber: '', purpose: '', signature: '' });
+                        setFormData({ name: '', idNumber: '', mobileNumber: '', purpose: '', acknowledgment: false, signature: '' });
                         sigCanvas.current?.clear();
                         setVisitorId(null);
                         setIsVerified(false);
@@ -254,20 +266,39 @@ export default function VisitorForm() {
                             }}
                         />
                     </div>
+                ) : currentStep.type === 'checkbox' ? (
+                    <div className={styles.checkboxContainer} style={{ marginTop: '1rem' }}>
+                        <p style={{
+                            fontSize: '0.9rem',
+                            color: '#d32f2f',
+                            marginBottom: '1.5rem',
+                            textAlign: 'right',
+                            lineHeight: '1.6',
+                            padding: '15px',
+                            background: '#ffebee',
+                            borderRadius: '8px',
+                            border: '1px solid #ffcdd2',
+                            fontWeight: 'bold'
+                        }}>
+                            أقر بالعلم أن عقوبة الاعتداء على المعلم/ـة بأي شكل من أشكال الاعتداء سواءً الاعتداء اللفظي أو الجسدي أو عبر وسائل الإعلام أو التواصل الاجتماعي ؛ يُعاقب المعتدي بغرامة تصل إلى مليون ريال والسجن 10 سنوات , كما أقر بالعلم أنه يُمنع التصوير والتسجيل داخل المباني التعليمية والإدارية التابعة لوزارة التعليم
+                        </p>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '1rem', fontWeight: 'bold' }}>
+                            <input
+                                type="checkbox"
+                                checked={!!formData.acknowledgment}
+                                onChange={handleChange}
+                                style={{
+                                    width: '24px',
+                                    height: '24px',
+                                    cursor: 'pointer',
+                                    accentColor: 'var(--primary)'
+                                }}
+                            />
+                            أتعهد بذلك وأوافق على الإقرار
+                        </label>
+                    </div>
                 ) : currentStep.type === 'signature' ? (
                     <div className={styles.signatureContainer}>
-                        <p style={{
-                            fontSize: '0.85rem',
-                            color: '#c62828',
-                            marginBottom: '1rem',
-                            textAlign: 'center',
-                            lineHeight: '1.4',
-                            padding: '10px',
-                            background: '#ffebee',
-                            borderRadius: '8px'
-                        }}>
-                            أقر بالعلم أن عقوبة الاعتداء على المعلم/المعلمة بأي شكل من أشكال الاعتداء سواءً الاعتداء اللفظي أو الجسدي أو عبر وسائل الإعلام أو التواصل الاجتماعي ؛ يُعاقب المعتدي بغرامة تصل إلى مليون ريال والسجن 10 سنوات كما أقر بالعلم بمنع التصوير أو التسجيل داخل المدرسة
-                        </p>
                         <SignatureCanvas
                             ref={sigCanvas}
                             penColor="black"
@@ -284,7 +315,7 @@ export default function VisitorForm() {
                             type={currentStep.type}
                             className={styles.input}
                             placeholder={currentStep.placeholder}
-                            value={formData[currentStep.key as keyof typeof formData]}
+                            value={formData[currentStep.key as keyof typeof formData] as string}
                             onChange={handleChange}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') handleNext();

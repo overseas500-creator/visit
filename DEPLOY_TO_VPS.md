@@ -164,3 +164,96 @@ To make the site accessible via your domain securely.
     certbot --nginx -d security.ajaweedjeddah.online
     ```
     (Follow the on-screen prompts, enter your email, and verify).
+
+## 10. الخطوات النهائية: تفعيل الحماية الكاملة (بعد تحديث النطاق)
+
+حالياً، الموقع يعمل في "وضع الطوارئ" (Emergency Mode) للسماح بالدخول عبر IP.
+عندما يتم تحديث النطاق (`ajaweedjeddah...`) وتفعّل القفل الأخضر (SSL)، **يجب** عليك تنفيذ الخطوات التالية لإعادة الأمان للموقع:
+
+### أ) إصدار شهادة SSL (القفل الأخضر)
+نظف الشهادات القديمة وأصدر واحدة جديدة:
+```bash
+certbot delete --cert-name security.ajaweedjeddah.online
+systemctl reload nginx
+LC_ALL=C certbot --nginx -d security.ajaweedjeddah.online
+```
+
+### ب) تفعيل الكوكيز الآمنة (Secure Cookies)
+استبدل محتوى ملف `src/app/auth-actions.ts` بالكود التالي (الذي يحتوي على `secure: true`):
+
+```typescript
+'use server';
+
+import { db } from '@/lib/db';
+import { cookies } from 'next/headers';
+import { SignJWT, jwtVerify } from 'jose';
+import { redirect } from 'next/navigation';
+
+const JWT_SECRET = new TextEncoder().encode('your-secret-key-change-it-in-prod');
+
+export async function login(password: string) {
+    let success = false;
+    try {
+        const stmt = db.prepare("SELECT value FROM settings WHERE key = 'admin_password'");
+        const result = stmt.get() as { value: string };
+
+        if (result && result.value === password) {
+            const token = await new SignJWT({ role: 'admin' })
+                .setProtectedHeader({ alg: 'HS256' })
+                .setIssuedAt()
+                .setExpirationTime('24h')
+                .sign(JWT_SECRET);
+
+            // تفعيل الوضع الآمن
+            (await cookies()).set('admin_token', token, {
+                httpOnly: true,
+                secure: true, // ضروري للقفل الأخضر
+                sameSite: 'lax',
+                path: '/',
+                maxAge: 86400
+            });
+            success = true;
+        }
+    } catch (e) { return { success: false, error: 'System Error' }; }
+
+    if (success) redirect('/reports');
+    return { success: false, error: 'كلمة المرور خطأ' };
+}
+
+// ... بقية الدوال (logout, updateSchoolInfo, etc) كما هي
+```
+
+### ج) تفعيل حارس البوابة (Middleware)
+أعد تفعيل ملف `src/middleware.ts` ليقوم بفحص التوكن:
+
+```typescript
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { jwtVerify } from 'jose';
+
+const JWT_SECRET = new TextEncoder().encode('your-secret-key-change-it-in-prod');
+
+export async function middleware(request: NextRequest) {
+    if (request.nextUrl.pathname.startsWith('/reports')) {
+        const token = request.cookies.get('admin_token');
+        if (!token) return NextResponse.redirect(new URL('/login', request.url));
+
+        try {
+            await jwtVerify(token.value, JWT_SECRET);
+            return NextResponse.next();
+        } catch (err) {
+            return NextResponse.redirect(new URL('/login', request.url));
+        }
+    }
+    return NextResponse.next();
+}
+
+export const config = { matcher: '/reports/:path*' };
+```
+
+### د) تطبيق التغييرات
+```bash
+cd /var/www/visit
+npm run build
+pm2 reload all
+```
