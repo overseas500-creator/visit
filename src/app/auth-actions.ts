@@ -8,10 +8,15 @@ import { redirect } from 'next/navigation';
 const JWT_SECRET = new TextEncoder().encode('your-secret-key-change-it-in-prod');
 
 export async function login(password: string) {
+    console.log('[Login Debug] Attempting login...');
     const stmt = db.prepare("SELECT value FROM settings WHERE key = 'admin_password'");
     const result = stmt.get() as { value: string };
 
+    console.log('[Login Debug] DB Password exists:', !!result);
+    // console.log('[Login Debug] Password match:', result?.value === password); // Hidden for security in logs
+
     if (result && result.value === password) {
+        console.log('[Login Debug] Password correct. Generating token...');
         // Create JWT
         const token = await new SignJWT({ role: 'admin' })
             .setProtectedHeader({ alg: 'HS256' })
@@ -19,16 +24,18 @@ export async function login(password: string) {
             .setExpirationTime('24h')
             .sign(JWT_SECRET);
 
+        console.log('[Login Debug] Setting cookie...');
         (await cookies()).set('admin_token', token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: true, // Always secure on HTTPS
+            sameSite: 'lax', // Relaxed from 'strict' to avoid redirection issues
             maxAge: 60 * 60 * 24, // 1 day
         });
 
         return { success: true };
     }
 
+    console.log('[Login Debug] Password incorrect');
     return { success: false, error: 'كلمة المرور غير صحيحة' };
 }
 
